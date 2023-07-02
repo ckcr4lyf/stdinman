@@ -1,7 +1,7 @@
-use std::{io::{self, Read}, thread, sync::{Arc, Mutex}};
+use std::{io::{self, Read, Seek}, thread, sync::{Arc, Mutex}};
 
 use ringbuf::{HeapRb, HeapProducer, HeapConsumer};
-use songbird::SerenityInit;
+use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
 
 use std::env;
 
@@ -29,6 +29,7 @@ impl EventHandler for Handler {
 
         let gs = context.cache.guilds().clone();
 
+
         for g in gs {
             if g.to_string() == "232047335335526400"{
                 println!("Found server {:?}", g.name(&cache_clone));
@@ -41,7 +42,21 @@ impl EventHandler for Handler {
                     match songbird::get(&context_clone).await {
                         Some(manager) => {
                             let (handler, result) = manager.join(c.guild_id, c.id).await;
-                            println!("Now we're really in");
+
+                            match result {
+                                Ok(_) => {
+                                    let x = NullSource;
+                                    println!("Now we're really in");
+                                    // let s = songbird::ffmpeg("path.mp3").await.expect("fail to open");
+                                    // results in
+                                    // ffmpeg -i path.mp3 -f s16le -ac 2 -ar 48000 -acodec pcm_f32le -
+                                    handler.lock().await.play_only_source(x.into_input());
+                                    // handler.lock().await.play_only_source(s);
+                                },
+                                Err(e) => {
+                                    println!("Failed to join: {}", e);
+                                }
+                            }
                         },
                         None => {
                             println!("Failed to join :((");
@@ -177,4 +192,45 @@ fn notmain() {
     // buf[0] = 4;
     // println!("Buf is {:?}", buf);
 
+}
+
+
+struct NullSource;
+
+impl NullSource {
+    pub fn into_input(self) -> Input {
+
+        Input::new(
+            true,
+            Reader::Extension(Box::new(self)),
+            Codec::FloatPcm,
+            Container::Raw,
+            None,
+        )
+    }
+}
+
+impl Read for NullSource {
+    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
+        let safe_length = buf.len();
+        println!("Reading {} bytes", safe_length);
+        buf.fill(0x00);
+        Ok(safe_length)
+    }
+}
+
+impl Seek for NullSource {
+    fn seek(&mut self, _: std::io::SeekFrom) -> std::io::Result<u64> {
+        unreachable!()
+    }
+}
+
+impl MediaSource for NullSource {
+    fn byte_len(&self) -> Option<u64> {
+        None
+    }
+
+    fn is_seekable(&self) -> bool {
+        false
+    }
 }
