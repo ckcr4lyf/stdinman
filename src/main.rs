@@ -212,10 +212,11 @@ impl NullSource {
 
 impl Read for NullSource {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        let safe_length = buf.len();
-        println!("Reading {} bytes", safe_length);
-        buf.fill(0x00);
-        Ok(safe_length)
+        std::io::stdin().read(buf)
+        // let safe_length = buf.len();
+        // println!("Reading {} bytes", safe_length);
+        // buf.fill(0x00);
+        // Ok(safe_length)
     }
 }
 
