@@ -1,4 +1,4 @@
-use std::{io::{self, Read, Seek}, thread, sync::{Arc, Mutex}};
+use std::{io::{self, Read, Seek}, thread, sync::{Arc, Mutex, mpsc::Sender}};
 
 use ringbuf::{HeapRb, HeapProducer, HeapConsumer};
 use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
@@ -11,11 +11,15 @@ use serenity::model::channel::Message;
 use serenity::framework::standard::macros::{command, group};
 use serenity::framework::standard::{StandardFramework, CommandResult};
 
+use std::sync::mpsc;
+
 #[group]
 #[commands(ping)]
 struct General;
 
-struct Handler;
+struct Handler {
+    tx: Mutex<Sender<bool>>
+}
 
 #[async_trait]
 impl EventHandler for Handler {
@@ -31,6 +35,8 @@ impl EventHandler for Handler {
 
 
         for g in gs {
+            // hardcoded XD 
+            // TODO: FIXME
             if g.to_string() == "232047335335526400"{
                 println!("Found server {:?}", g.name(&cache_clone));
 
@@ -50,6 +56,8 @@ impl EventHandler for Handler {
                                     // let s = songbird::ffmpeg("path.mp3").await.expect("fail to open");
                                     // results in
                                     // ffmpeg -i path.mp3 -f s16le -ac 2 -ar 48000 -acodec pcm_f32le -
+                                    // we dont need ignore thread to hijack stdin anymore.
+                                    self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
                                     handler.lock().await.play_only_source(x.into_input());
                                     // handler.lock().await.play_only_source(s);
                                 },
@@ -68,43 +76,36 @@ impl EventHandler for Handler {
 
             }
         }
-
-        // for guild in ready.guilds {
-        //     println!("Found guild {} (Unavailable: {})", guild.id, guild.id.name(c.clone()).expect("no name"));
-            
-        //     match guild.id.channels(context.clone()).await {
-        //         Ok(c) => {
-        //             println!("found channels");
-        //             let i = c.into_iter();
-        //             for (gi, gc) in i {
-        //                 println!("Name: {} (ID={})", gc.name(), gc.id);
-        //                 // https://discord.com/channels/232047335335526400/232047335335526401
-        //                 // self.conn
-        //                 if gc.id.to_string() == "232047335335526401" {
-                            // println!("Were in bois");
-                            // match songbird::get(&c2).await {
-                            //     Some(manager) => {
-                            //         let (handler, result) = manager.join(gc.guild_id, gc.id).await;
-                            //         println!("Now we're really in");
-                            //     },
-                            //     None => {
-                            //         println!("Failed to join :((");
-                            //     }
-                            // }
-                            
-        //                 }
-        //             }
-        //         },
-        //         Err(e)=> {
-        //             println!("Fail to get channels: {}", e);
-        //         }
-        //     }
-        // }
     }
 }
 
 #[tokio::main]
 async fn main() {
+
+    let (tx, rx) = mpsc::channel::<bool>();
+
+    let mut ignore_thread = thread::spawn(move || {
+        let mut buf = vec![0; 1024];
+        loop {
+            // check for stop message
+            if let Ok(_) = rx.try_recv() {
+                println!("Got stop message, will stop.");
+                break;
+            }
+            
+            // read and discard all input
+            if let Ok(n) = std::io::stdin().read(&mut buf) {
+                if n == 0 {
+                    // end of input
+                    println!("End of input.");
+                    break;
+                }
+            }
+        }
+    });
+
+
+
     let framework = StandardFramework::new()
         .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
         .group(&GENERAL_GROUP);
@@ -114,7 +115,9 @@ async fn main() {
     let intents = GatewayIntents::non_privileged();
     let mut client = Client::builder(token, intents)
         .register_songbird()
-        .event_handler(Handler)
+        .event_handler(Handler{ 
+            tx: tx.into(),
+        })
         .framework(framework)
         .await
         .expect("Error creating client");
