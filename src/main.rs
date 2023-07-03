@@ -9,10 +9,11 @@ use std::env;
 use serenity::{async_trait, model::prelude::Activity};
 use serenity::prelude::*;
 use serenity::framework::standard::{StandardFramework};
-
+use serde::{Serialize, Deserialize};
 use std::sync::mpsc;
 
 struct Handler {
+    voice_channel_id: String,
     tx: Mutex<mpsc::Sender<bool>>
 }
 
@@ -51,7 +52,7 @@ impl EventHandler for Handler {
                                     self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
 
                                     // Play stdin via bot
-                                    handler.lock().await.play_only_source(x.into_input());
+                                    handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(x))));
                                 },
                                 Err(e) => {
                                     println!("Failed to join: {}", e);
@@ -63,16 +64,33 @@ impl EventHandler for Handler {
                         }
                     }
                 }
-
-
-
             }
         }
     }
 }
 
+#[derive(Default, Serialize, Deserialize)]
+struct StdinmanConfig {
+    bot_token: String,
+    voice_channel_id: String,
+}
+
 #[tokio::main]
 async fn main() {
+    let cfg: StdinmanConfig = match confy::load("stdinman", "stdinman"){
+        Ok(c) => c,
+        Err(e) => {
+            println!("fail to load config: {}", e);
+            panic!("fail to load config: {}", e);
+        }
+    };
+
+    // TODO: Config can be overridden via CLI params (i.e. value = CLI Param || Config)
+    if cfg.bot_token == "" || cfg.voice_channel_id == "" {
+        let cfg_path = confy::get_configuration_file_path("stdinman", "stdinman").expect("Fail to get config file path");
+        println!("Missing bot_token / voice_channel_id in config! Please add it in {}", cfg_path.to_string_lossy());
+        std::process::exit(-1);
+    }
 
     let (tx, rx) = mpsc::channel::<bool>();
 
@@ -96,16 +114,12 @@ async fn main() {
         }
     });
 
-
-
     let framework = StandardFramework::new();
-
-    // Login with a bot token from the environment
-    let token = env::var("DISCORD_TOKEN").expect("token");
     let intents = GatewayIntents::non_privileged();
-    let mut client = Client::builder(token, intents)
+    let mut client = Client::builder(cfg.bot_token, intents)
         .register_songbird()
         .event_handler(Handler{ 
+            voice_channel_id: cfg.voice_channel_id,
             tx: tx.into(),
         })
         .framework(framework)
@@ -119,18 +133,6 @@ async fn main() {
 }
 
 struct NullSource;
-
-impl NullSource {
-    pub fn into_input(self) -> Input {
-        Input::new(
-            true,
-            Reader::Extension(Box::new(self)),
-            Codec::FloatPcm, // TODO: Try PCM (s16le)?
-            Container::Raw,
-            None,
-        )
-    }
-}
 
 impl Read for NullSource {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
