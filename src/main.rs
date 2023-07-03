@@ -13,10 +13,6 @@ use serenity::framework::standard::{StandardFramework, CommandResult};
 
 use std::sync::mpsc;
 
-#[group]
-#[commands(ping)]
-struct General;
-
 struct Handler {
     tx: Mutex<Sender<bool>>
 }
@@ -30,9 +26,7 @@ impl EventHandler for Handler {
 
         let cache_clone = context.cache.clone();
         let context_clone = context.clone();
-
         let gs = context.cache.guilds().clone();
-
 
         for g in gs {
             // hardcoded XD 
@@ -40,7 +34,7 @@ impl EventHandler for Handler {
             if g.to_string() == "232047335335526400"{
                 println!("Found server {:?}", g.name(&cache_clone));
 
-                let cs: Vec<_> = g.channels(&context_clone).await.unwrap().into_iter().filter(|el| el.0.to_string() == "232047335335526401").collect();
+                let cs: Vec<_> = g.channels(&context_clone).await.unwrap().into_iter().filter(|el| el.0.to_string() == "232165171760594946").collect();
 
                 if cs.len() == 1 {
                     let c = cs[0].1.to_owned();
@@ -53,13 +47,12 @@ impl EventHandler for Handler {
                                 Ok(_) => {
                                     let x = NullSource;
                                     println!("Now we're really in");
-                                    // let s = songbird::ffmpeg("path.mp3").await.expect("fail to open");
-                                    // results in
-                                    // ffmpeg -i path.mp3 -f s16le -ac 2 -ar 48000 -acodec pcm_f32le -
-                                    // we dont need ignore thread to hijack stdin anymore.
+
+                                    // Tell the thread that is "wasting" stdin to stop
                                     self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
+
+                                    // Play stdin via bot
                                     handler.lock().await.play_only_source(x.into_input());
-                                    // handler.lock().await.play_only_source(s);
                                 },
                                 Err(e) => {
                                     println!("Failed to join: {}", e);
@@ -106,9 +99,7 @@ async fn main() {
 
 
 
-    let framework = StandardFramework::new()
-        .configure(|c| c.prefix("~")) // set the bot's prefix to "~"
-        .group(&GENERAL_GROUP);
+    let framework = StandardFramework::new();
 
     // Login with a bot token from the environment
     let token = env::var("DISCORD_TOKEN").expect("token");
@@ -126,87 +117,16 @@ async fn main() {
     if let Err(why) = client.start().await {
         println!("An error occurred while running the client: {:?}", why);
     }
-
-    // client.co
-
-    // let x = client.data.read().await.get::<>.
-
-    // x.lock().await.?
-    // let manager = songbird::get(x).await.unwrap();
 }
-
-#[command]
-async fn ping(ctx: &Context, msg: &Message) -> CommandResult {
-    msg.reply(ctx, "Pong!").await?;
-
-    Ok(())
-}
-
-fn notmain() {
-
-    let (mut producer, mut consumer) = HeapRb::<u8>::new(1024).split();
-    // let rb = HeapRb::<u8>::new(1024);
-    // let stdin = io::stdin();
-
-
-    // producer.
-
-
-    let h = thread::spawn(move || {
-        let mut buf: [u8; 10] = [0; 10];
-        loop {
-            while let Ok(v) = io::stdin().read(&mut buf) {
-                println!("[PRODUCER] Read {} bytes", v);
-                producer.push_slice(&buf);  
-            }
-        }
-        // match io::stdin().read(&mut buf) {
-        //     Ok(v) => {
-        //         println!("[PRODUCER] Read {} bytes", v);
-        //         producer.push_slice(&buf);
-        //     }
-        //     Err(e) => {
-        //         println!("cant read coz {}", e);
-        //     }
-        // }
-    });
-    
-    // h.join().unwrap();
-
-    let mut buf2: [u8; 10] = [0; 10];
-    
-    loop {
-        while let Ok(v) = consumer.read(&mut buf2) {
-            println!("[CONSUMER] Read {} bytes", v);
-        }
-    }
-    //     match 
-    //     Ok(v) => {
-    //         // println!("Buffer is {:?}", buf2);
-    //     }
-    //     Err(e) => {
-    //         println!("cant read coz {}", e);
-    //     }
-    // }
-
-
-
-    // println!("Buf is {:?}", buf);
-    // buf[0] = 4;
-    // println!("Buf is {:?}", buf);
-
-}
-
 
 struct NullSource;
 
 impl NullSource {
     pub fn into_input(self) -> Input {
-
         Input::new(
             true,
             Reader::Extension(Box::new(self)),
-            Codec::FloatPcm,
+            Codec::FloatPcm, // TODO: Try PCM (s16le)?
             Container::Raw,
             None,
         )
@@ -216,10 +136,6 @@ impl NullSource {
 impl Read for NullSource {
     fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
         std::io::stdin().read(buf)
-        // let safe_length = buf.len();
-        // println!("Reading {} bytes", safe_length);
-        // buf.fill(0x00);
-        // Ok(safe_length)
     }
 }
 
