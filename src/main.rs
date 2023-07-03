@@ -2,6 +2,7 @@ use std::io::{Read, Seek};
 use std::thread;
 use std::sync::Mutex;
 
+use log::{warn, error, debug, info};
 use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
 
 use std::env;
@@ -22,7 +23,7 @@ struct Handler {
 #[async_trait]
 impl EventHandler for Handler {
     async fn ready(&self, context: Context, ready: serenity::model::gateway::Ready) {
-        println!("READY");
+        info!("discord bot is ready");
         context.online().await;
         context.set_activity(Activity::playing("THIS IS A TEST")).await;
 
@@ -34,13 +35,13 @@ impl EventHandler for Handler {
             // hardcoded XD 
             // TODO: FIXME
             if g.to_string() == "232047335335526400"{
-                println!("Found server {:?}", g.name(&cache_clone));
+                info!("Found server {:?}", g.name(&cache_clone));
 
                 let cs: Vec<_> = g.channels(&context_clone).await.unwrap().into_iter().filter(|el| el.0.to_string() == "232165171760594946").collect();
 
                 if cs.len() == 1 {
                     let c = cs[0].1.to_owned();
-                    println!("Were in bois");
+                    info!("Were in bois");
                     match songbird::get(&context_clone).await {
                         Some(manager) => {
                             let (handler, result) = manager.join(c.guild_id, c.id).await;
@@ -48,21 +49,23 @@ impl EventHandler for Handler {
                             match result {
                                 Ok(_) => {
                                     let stdin_reader = stdin::StdinReader;
-                                    println!("Now we're really in");
+                                    info!("Now we're really in");
 
                                     // Tell the thread that is "wasting" stdin to stop
+                                    debug!("telling early-stdin consumer thread to stop");
                                     self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
 
                                     // Play stdin via bot
+                                    info!("going to pipe stding to bot");
                                     handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(stdin_reader))));
                                 },
                                 Err(e) => {
-                                    println!("Failed to join: {}", e);
+                                    error!("Failed to join: {}", e);
                                 }
                             }
                         },
                         None => {
-                            println!("Failed to join :((");
+                            error!("Failed to join :((");
                         }
                     }
                 }
@@ -78,7 +81,8 @@ struct StdinmanConfig {
 }
 
 #[tokio::main]
-async fn main() {
+async fn main() { 
+    env_logger::init();
     let cfg: StdinmanConfig = match confy::load("stdinman", "stdinman"){
         Ok(c) => c,
         Err(e) => {
@@ -90,26 +94,25 @@ async fn main() {
     // TODO: Config can be overridden via CLI params (i.e. value = CLI Param || Config)
     if cfg.bot_token == "" || cfg.voice_channel_id == "" {
         let cfg_path = confy::get_configuration_file_path("stdinman", "stdinman").expect("Fail to get config file path");
-        println!("Missing bot_token / voice_channel_id in config! Please add it in {}", cfg_path.to_string_lossy());
+        error!("Missing bot_token / voice_channel_id in config! Please add it in {}", cfg_path.to_string_lossy());
         std::process::exit(-1);
     }
 
     let (tx, rx) = mpsc::channel::<bool>();
 
+    debug!("starting early-stdin consumer thread");
     let mut ignore_thread = thread::spawn(move || {
         let mut buf = vec![0; 1024];
         loop {
             // check for stop message
             if let Ok(_) = rx.try_recv() {
-                println!("Got stop message, will stop.");
+                debug!("recevied stop instruction, will stop consuming stdin");
                 break;
             }
             
             // read and discard all input
             if let Ok(n) = std::io::stdin().read(&mut buf) {
                 if n == 0 {
-                    // end of input
-                    println!("End of input.");
                     break;
                 }
             }
