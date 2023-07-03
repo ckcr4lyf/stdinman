@@ -1,6 +1,6 @@
 use std::io::{Read, Seek};
 use std::thread;
-use std::sync::{Mutex, mpsc::Sender};
+use std::sync::Mutex;
 
 use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
 
@@ -13,7 +13,7 @@ use serenity::framework::standard::{StandardFramework};
 use std::sync::mpsc;
 
 struct Handler {
-    tx: Mutex<Sender<bool>>
+    tx: Mutex<mpsc::Sender<bool>>
 }
 
 #[async_trait]
