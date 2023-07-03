@@ -1,15 +1,14 @@
-use std::{io::{self, Read, Seek}, thread, sync::{Arc, Mutex, mpsc::Sender}};
+use std::io::{Read, Seek};
+use std::thread;
+use std::sync::{Mutex, mpsc::Sender};
 
-use ringbuf::{HeapRb, HeapProducer, HeapConsumer};
 use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
 
 use std::env;
 
 use serenity::{async_trait, model::prelude::Activity};
 use serenity::prelude::*;
-use serenity::model::channel::Message;
-use serenity::framework::standard::macros::{command, group};
-use serenity::framework::standard::{StandardFramework, CommandResult};
+use serenity::framework::standard::{StandardFramework};
 
 use std::sync::mpsc;
 
