@@ -12,6 +12,8 @@ use serenity::framework::standard::{StandardFramework};
 use serde::{Serialize, Deserialize};
 use std::sync::mpsc;
 
+mod stdin;
+
 struct Handler {
     voice_channel_id: String,
     tx: Mutex<mpsc::Sender<bool>>
@@ -45,14 +47,14 @@ impl EventHandler for Handler {
 
                             match result {
                                 Ok(_) => {
-                                    let x = NullSource;
+                                    let stdin_reader = stdin::StdinReader;
                                     println!("Now we're really in");
 
                                     // Tell the thread that is "wasting" stdin to stop
                                     self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
 
                                     // Play stdin via bot
-                                    handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(x))));
+                                    handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(stdin_reader))));
                                 },
                                 Err(e) => {
                                     println!("Failed to join: {}", e);
@@ -129,29 +131,5 @@ async fn main() {
     // start listening for events by starting a single shard
     if let Err(why) = client.start().await {
         println!("An error occurred while running the client: {:?}", why);
-    }
-}
-
-struct NullSource;
-
-impl Read for NullSource {
-    fn read(&mut self, buf: &mut [u8]) -> std::io::Result<usize> {
-        std::io::stdin().read(buf)
-    }
-}
-
-impl Seek for NullSource {
-    fn seek(&mut self, _: std::io::SeekFrom) -> std::io::Result<u64> {
-        unreachable!()
-    }
-}
-
-impl MediaSource for NullSource {
-    fn byte_len(&self) -> Option<u64> {
-        None
-    }
-
-    fn is_seekable(&self) -> bool {
-        false
     }
 }
