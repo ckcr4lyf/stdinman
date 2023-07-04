@@ -29,47 +29,38 @@ impl EventHandler for Handler {
 
         let cache_clone = context.cache.clone();
         let context_clone = context.clone();
-        let gs = context.cache.guilds().clone();
+        let guilds = context.cache.guilds().clone();
 
-        for g in gs {
-            // hardcoded XD 
-            // TODO: FIXME
-            if g.to_string() == "232047335335526400"{
-                info!("Found server {:?}", g.name(&cache_clone));
+        for guild in guilds {
+            // Don't filter by guild_id, just check all channels in the guild 
+            // Ideally stdinman is intended to be used by a solo bot in just few servers,
+            // but only one VC at a time anyway.
+            let channels: Vec<_> = guild.channels(&context_clone).await.unwrap().into_iter().filter(|channel| channel.0.to_string() == self.voice_channel_id).collect();
 
-                let cs: Vec<_> = g.channels(&context_clone).await.unwrap().into_iter().filter(|el| el.0.to_string() == "232165171760594946").collect();
-
-                if cs.len() == 1 {
-                    let c = cs[0].1.to_owned();
-                    info!("Were in bois");
-                    match songbird::get(&context_clone).await {
-                        Some(manager) => {
-                            let (handler, result) = manager.join(c.guild_id, c.id).await;
-
-                            match result {
-                                Ok(_) => {
-                                    let stdin_reader = stdin::StdinReader;
-                                    info!("Now we're really in");
-
-                                    // Tell the thread that is "wasting" stdin to stop
-                                    debug!("telling early-stdin consumer thread to stop");
-                                    self.tx.lock().expect("fail to acquire lock").send(true).expect("fail to send");
-
-                                    // Play stdin via bot
-                                    info!("going to pipe stding to bot");
-                                    handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(stdin_reader))));
-                                },
-                                Err(e) => {
-                                    error!("Failed to join: {}", e);
-                                }
-                            }
-                        },
-                        None => {
-                            error!("Failed to join :((");
-                        }
-                    }
-                }
+            if channels.len() != 1 {
+                continue;
             }
+
+            let channel = channels[0].1.to_owned();
+            info!("found the channel (in {}), attempting to connect...", guild.name(&cache_clone).unwrap_or("(failed to get server name)".to_string()));
+
+            let manager = songbird::get(&context_clone).await.expect("failed to get songbird manager");
+            let (handler, result) = manager.join(channel.guild_id, channel.id).await;
+
+            if let Err(e) = result {
+                error!("Failed to join channel: {}", e);
+                return;
+            }
+
+            info!("joined channel sucessfully!");
+            debug!("Telling early-stdin consumer to stop...");
+            self.tx.lock().expect("fail to acquire lock on early-stdin consumer").send(true).expect("fail to signal early-stdin consumer");
+
+            // Now we have access to stdin
+            info!("going to pipe stdin to the bot");
+            let stdin_reader = stdin::StdinReader;
+            handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(stdin_reader))));
+            info!("piping successfully...");
         }
     }
 }
@@ -93,8 +84,8 @@ async fn main() {
 
     // TODO: Config can be overridden via CLI params (i.e. value = CLI Param || Config)
     if cfg.bot_token == "" || cfg.voice_channel_id == "" {
-        let cfg_path = confy::get_configuration_file_path("stdinman", "stdinman").expect("Fail to get config file path");
-        error!("Missing bot_token / voice_channel_id in config! Please add it in {}", cfg_path.to_string_lossy());
+        let cfg_path = confy::get_configuration_file_path("stdinman", "stdinman").expect("fail to get config file path");
+        error!("missing bot_token / voice_channel_id in config! Please add it in {}", cfg_path.to_string_lossy());
         std::process::exit(-1);
     }
 
