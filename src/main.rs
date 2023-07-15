@@ -121,23 +121,7 @@ async fn main() {
     let (tx, rx) = mpsc::channel::<bool>();
 
     debug!("starting early-stdin consumer thread");
-    let mut ignore_thread = thread::spawn(move || {
-        let mut buf = vec![0; 1024];
-        loop {
-            // check for stop message
-            if let Ok(_) = rx.try_recv() {
-                debug!("recevied stop instruction, will stop consuming stdin");
-                break;
-            }
-            
-            // read and discard all input
-            if let Ok(n) = std::io::stdin().read(&mut buf) {
-                if n == 0 {
-                    break;
-                }
-            }
-        }
-    });
+    thread::spawn(|| stdin::early_stdin_consumer(rx));
 
     let framework = StandardFramework::new();
     let intents = GatewayIntents::non_privileged();
