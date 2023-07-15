@@ -1,17 +1,10 @@
-use std::io::{Read, Seek};
-use std::thread;
 use std::sync::Mutex;
 
-use log::{warn, error, debug, info};
-use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
-use clap::Parser;
-
-use std::env;
+use log::{error, debug, info};
+use songbird::input::{Input, Reader};
 
 use serenity::{async_trait, model::prelude::Activity};
 use serenity::prelude::*;
-use serenity::framework::standard::{StandardFramework};
-use serde::{Serialize, Deserialize};
 use std::sync::mpsc;
 
 use super::stdin;
@@ -23,7 +16,7 @@ pub struct Handler {
 
 #[async_trait]
 impl EventHandler for Handler {
-    async fn ready(&self, context: Context, ready: serenity::model::gateway::Ready) {
+    async fn ready(&self, context: Context, _ready: serenity::model::gateway::Ready) {
         info!("discord bot is ready");
         context.online().await;
         context.set_activity(Activity::playing("THIS IS A TEST")).await;

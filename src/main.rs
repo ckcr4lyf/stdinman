@@ -1,16 +1,11 @@
-use std::io::{Read, Seek};
 use std::thread;
-use std::sync::Mutex;
 
-use log::{warn, error, debug, info};
-use songbird::{SerenityInit, input::{Input, Reader, Codec, reader::MediaSource, Container}};
+use log::{error, debug};
+use songbird::SerenityInit;
 use clap::Parser;
 
-use std::env;
-
-use serenity::{async_trait, model::prelude::Activity};
 use serenity::prelude::*;
-use serenity::framework::standard::{StandardFramework};
+use serenity::framework::standard::StandardFramework;
 use serde::{Serialize, Deserialize};
 use std::sync::mpsc;
 
