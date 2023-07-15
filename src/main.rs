@@ -21,7 +21,9 @@ struct StdinmanConfig {
 
 #[derive(Parser)]
 struct StdinmanArgs {
+    #[arg(long)]
     bot_token: Option<String>,
+    #[arg(long)]
     voice_channel_id: Option<String>
 }
 
