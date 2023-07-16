@@ -49,7 +49,39 @@ The recipes involving pactl are intended for use on linux with PulseAudio (or Pi
 
 <details>
 
-<summary><h3>Play your computer's speakers' output via Discord</h3></summary>
+<summary><h3>Stream ffmpeg output to Discord</h3></summary>
+
+[ffmpeg]) is an amazing A/V utility, that can handle an incredible amount of input formats. If you can pass audio from a source into ffmpeg, or even a video (assuming you only want the audio), you can configure it to output the audio as 32-bit floating point PCM, which can then be piped to `stdinman` and streamed to Discord.
+
+You should use the `-re` flag on the input, to ensure ffmpeg consumes it in real time.
+
+```
+ffmpeg -re -i sample.mp3 -map 0:a:0 -c:a:0 pcm_f32le -ar 48000 -ac 2 -f f32le - | stdinman
+```
+
+</details>
+
+<details>
+
+<summary><h3>Stream Spotify directly to Discord (via librespot, ffmpeg)</h3></summary>
+
+Using the incredible work by the people over at [librespot](https://github.com/librespot-org/librespot) , it is possible to create a "Spotify Connect" device your account can play audio to, who's output can be piped to another program.
+
+Using `ffmpeg` in the middle to ensure the format matches, we can then pipe it over to `stdinman` and stream it straight to Discord!
+
+```
+librespot -n stdinman_connect --backend pipe -b 320 | ffmpeg -f s16le -ac 2 -ar 44100 -re -i pipe:0 -map 0:a:0 -c:a:0 pcm_f32le -ar 48000 -ac 2 -f f32le - | stdinman
+```
+
+For more information on how to use librespot [check out their repo](https://github.com/librespot-org/librespot).
+
+_Note: Using librespot is [probably forbidden by Spotify](https://github.com/librespot-org/librespot#disclaimer)._
+
+</details>
+
+<details>
+
+<summary><h3>(Linux) Play your computer's speakers' output via Discord</h3></summary>
 
 _Note: If you're in the VC on the same computer, you would hear a kind of "echo" on the audio - first your headphones / speakers, and then the audio from discord with some latency. In such situations, it is recommended to output the audio to a virtual sink, and then play that via the bot (see the next recipe). This has the additional advantage of sharing a specific application's audio instead of the whole system._
 
@@ -70,7 +102,7 @@ parec -d alsa_output.pci-0000_00_1f.3.3.analog-stereo.monitor --format=float32le
 
 <details>
 
-<summary><h3>Play a specific app's audio ONLY via Discord</h3></summary>
+<summary><h3>(Linux) Play a specific app's audio ONLY via Discord</h3></summary>
 
 This would route all audio from the app to the virtual sink, who's monitor you can then pass to `stdinman` to stream to Discord.
 
