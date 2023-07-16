@@ -45,9 +45,9 @@ The recipes involving pactl are intended for use on linux with PulseAudio (or Pi
 
 <details>
 
-<summary><h2>Play your computer's speakers' output via Discord</h2></summary>
+<summary><h3>Play your computer's speakers' output via Discord</h3></summary>
 
-_Note: If you're in the VC on the same computer, you would hear a kind of "echo" on the audio - first your headphones / speakers, and then the audio from discord with some latency. In such situations, it is recommended to output the audio to a virtual sink, and then play that via the bot. This has the additional advantage of sharing a specific application's audio instead of the whole system._
+_Note: If you're in the VC on the same computer, you would hear a kind of "echo" on the audio - first your headphones / speakers, and then the audio from discord with some latency. In such situations, it is recommended to output the audio to a virtual sink, and then play that via the bot (see the next recipe). This has the additional advantage of sharing a specific application's audio instead of the whole system._
 
 You can use `pactl` to view the monitor input corresponding to your speakers:
 
@@ -64,6 +64,30 @@ parec -d alsa_output.pci-0000_00_1f.3.3.analog-stereo.monitor --format=float32le
 ```
 </details>
 
+<details>
+
+<summary><h3>Play a specific app's audio ONLY via Discord</h3></summary>
+
+This would route all audio from the app to the virtual sink, who's monitor you can then pass to `stdinman` to stream to Discord.
+
+To do this, we first need to create a virtual sink via `pactl`. You can replace `stdinman-demo` with whatever name you want.
+
+```
+pactl load-module module-null-sink media.class=Audio/Sink sink_name=stdinman-demo channel_map=left,right
+```
+
+Then, using some GUI like `pavucontrol` , set the output of the program to this new sink: 
+
+![changing the output of a program to the new sink](./assets/select_output.png)
+
+_(Note: you won't be able to hear this application on your normal speakers anymore)_
+
+Then, use this sink's monitor with `parec` and pass the output to stdinman!
+
+```
+parec -d stdinman-demo.monitor --format=float32le --rate=48000 | stdinman
+```
+</details>
 
 
 ## Thanks
