@@ -43,7 +43,11 @@ Logging can be configured via an environment variable: `export RUST_LOG=stdinman
 
 The recipes involving pactl are intended for use on linux with PulseAudio (or Pipewire with the Pulseaudio shim). Examples with ffmpeg could be used on Mac as well.
 
+<details>
+
+<summary>
 ### Play your computer's speakers' output via Discord
+</summary>
 
 _Note: If you're in the VC on the same computer, you would hear a kind of "echo" on the audio - first your headphones / speakers, and then the audio from discord with some latency. In such situations, it is recommended to output the audio to a virtual sink, and then play that via the bot. This has the additional advantage of sharing a specific application's audio instead of the whole system._
 
@@ -60,7 +64,7 @@ In this case, `alsa_output.pci-0000_00_1f.3.3.analog-stereo.monitor` is the spea
 ```
 parec -d alsa_output.pci-0000_00_1f.3.3.analog-stereo.monitor --format=float32le --rate=48000 | stdinman
 ```
-
+</details>
 
 
 
