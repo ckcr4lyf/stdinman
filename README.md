@@ -51,7 +51,7 @@ The recipes involving pactl are intended for use on linux with PulseAudio (or Pi
 
 <summary><h3>Stream ffmpeg output to Discord</h3></summary>
 
-[ffmpeg]) is an amazing A/V utility, that can handle an incredible amount of input formats. If you can pass audio from a source into ffmpeg, or even a video (assuming you only want the audio), you can configure it to output the audio as 32-bit floating point PCM, which can then be piped to `stdinman` and streamed to Discord.
+[ffmpeg](https://ffmpeg.org/) is an amazing A/V utility, that can handle an incredible amount of input formats. If you can pass audio from a source into ffmpeg, or even a video (assuming you only want the audio), you can configure it to output the audio as 32-bit floating point PCM, which can then be piped to `stdinman` and streamed to Discord.
 
 You should use the `-re` flag on the input, to ensure ffmpeg consumes it in real time.
 
