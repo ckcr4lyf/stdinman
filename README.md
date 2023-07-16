@@ -45,9 +45,7 @@ The recipes involving pactl are intended for use on linux with PulseAudio (or Pi
 
 <details>
 
-<summary>
-### Play your computer's speakers' output via Discord
-</summary>
+<summary><h2>Play your computer's speakers' output via Discord</h2></summary>
 
 _Note: If you're in the VC on the same computer, you would hear a kind of "echo" on the audio - first your headphones / speakers, and then the audio from discord with some latency. In such situations, it is recommended to output the audio to a virtual sink, and then play that via the bot. This has the additional advantage of sharing a specific application's audio instead of the whole system._
 
