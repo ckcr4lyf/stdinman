@@ -1,14 +1,18 @@
 # stdinman
 
-Tool to pipe raw data from stdin to discord via a bot.
+Tool to pipe raw audio to Discord via a bot. Input data must be PCM 32-bit floating-point little-endian (aka `f32le`).
 
-Input data must be PCM 32-bit floating-point little-endian (aka f32le).
+If your audio is in any other format, it is possible to use tools like ffmpeg to convert it to the required format.
+
+```
+ffmpeg -re -i sample.mp3 -map 0:a:0 -c:a:0 pcm_f32le -ar 48000 -ac 2 -f f32le - | stdinman
+```
 
 ## Motivation
 
 There are several interesting discord bots and such floating around, such as for playing Youtube links, soundcloud etc. However, as an **Arch Linux** user, I wanted something super composable - the ability to play _any raw audio_ into Discord, via a bot.
 
-That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything outputtable by ffmpeg really), or spinning vinyl*. Check out the [recipes](#recipes) section for more.
+That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything that can be passed into ffmpeg), or spinning vinyl*. Check out the [recipes](#recipes) section for more.
 
 ## Building
 
