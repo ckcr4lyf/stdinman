@@ -2,8 +2,20 @@
 name = "stdinman"
 version = "0.1.0"
 edition = "2021"
+license = "WTFPL"
+description = "Pipe audio to discord, unix style"
+homepage = "https://github.com/ckcr4lyf/stdinman"
+repository = "https://github.com/ckcr4lyf/stdinman"
+documentation = "https://github.com/ckcr4lyf/stdinman"
+readme = "README.md"
+keywords = ["discord", "audio"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
+
+[[bin]]
+name = "stdinman"
+test = false
+bench = false
 
 [dependencies]
 serenity = { version = "0.11", features = ["voice"] }
