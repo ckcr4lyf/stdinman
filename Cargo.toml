@@ -8,7 +8,7 @@ homepage = "https://github.com/ckcr4lyf/stdinman"
 repository = "https://github.com/ckcr4lyf/stdinman"
 documentation = "https://github.com/ckcr4lyf/stdinman"
 readme = "README.md"
-keywords = "discord, audio"
+keywords = ["discord", "audio"]
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
