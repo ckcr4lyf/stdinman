@@ -69,6 +69,10 @@ async fn main() {
 
     let (tx, rx) = mpsc::channel::<bool>();
 
+    // As soon as stdinman is started, data will start to get piped to it (e.g. from ffmpeg)
+    // But it'll take some time to actually connect to discord and the voice channel 
+    // (3-5s in practice). To avoid these 3-5s of audio getting buffered and then causing some weird
+    // behavior, we create a "dummy" stdin consumer, which reads from stdin and just discards the data
     debug!("starting early-stdin consumer thread");
     thread::spawn(|| stdin::early_stdin_consumer(rx));
 

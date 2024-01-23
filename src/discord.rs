@@ -19,7 +19,7 @@ impl EventHandler for Handler {
     async fn ready(&self, context: Context, _ready: serenity::model::gateway::Ready) {
         info!("discord bot is ready");
         context.online().await;
-        context.set_activity(Activity::playing("THIS IS A TEST")).await;
+        context.set_activity(Activity::playing("stdinman")).await; // TODO: Also accept this as config / cli param?
 
         let cache_clone = context.cache.clone();
         let context_clone = context.clone();
@@ -48,6 +48,9 @@ impl EventHandler for Handler {
 
             info!("joined channel sucessfully!");
             debug!("Telling early-stdin consumer to stop...");
+            // This will send a signal to the thread which is "wasting" stdin while we took time to
+            // connect to discord, which will then allow this guy to consume the data (audio) on stdin
+            // and play it via the bot
             self.tx.lock().expect("fail to acquire lock on early-stdin consumer").send(true).expect("fail to signal early-stdin consumer");
 
             // Now we have access to stdin
