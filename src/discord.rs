@@ -11,6 +11,7 @@ use super::stdin;
 
 pub struct Handler {
     pub voice_channel_id: String,
+    pub bot_activity: String,
     pub tx: Mutex<mpsc::Sender<bool>>
 }
 
@@ -19,7 +20,7 @@ impl EventHandler for Handler {
     async fn ready(&self, context: Context, _ready: serenity::model::gateway::Ready) {
         info!("discord bot is ready");
         context.online().await;
-        context.set_activity(Activity::playing("stdinman")).await; // TODO: Also accept this as config / cli param?
+        context.set_activity(Activity::playing(self.bot_activity.clone())).await;
 
         let cache_clone = context.cache.clone();
         let context_clone = context.clone();

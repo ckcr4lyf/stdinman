@@ -1,4 +1,4 @@
-use std::thread;
+use std::{default, thread};
 
 use log::{error, debug};
 use songbird::SerenityInit;
@@ -14,9 +14,11 @@ mod discord;
 
 
 #[derive(Default, Serialize, Deserialize)]
+#[serde(default)] // we need this if we add new fields, otherwise confy will throw error on load (https://github.com/rust-cli/confy/issues/34)
 struct StdinmanConfig {
     bot_token: String,
     voice_channel_id: String,
+    bot_activity: String
 }
 
 #[derive(Parser)]
@@ -24,7 +26,9 @@ struct StdinmanArgs {
     #[arg(long)]
     bot_token: Option<String>,
     #[arg(long)]
-    voice_channel_id: Option<String>
+    voice_channel_id: Option<String>,
+    #[arg(long)]
+    bot_activity: Option<String>,
 }
 
 #[tokio::main]
@@ -67,6 +71,17 @@ async fn main() {
         }
     };
 
+    let bot_activity = match args.bot_activity {
+        Some(activity) => activity,
+        None => {
+            if cfg.bot_activity == "" {
+                String::from("stdinman")
+            } else {
+                cfg.bot_activity
+            }
+        }
+    };
+
     let (tx, rx) = mpsc::channel::<bool>();
 
     // As soon as stdinman is started, data will start to get piped to it (e.g. from ffmpeg)
@@ -82,6 +97,7 @@ async fn main() {
         .register_songbird()
         .event_handler(discord::Handler{ 
             voice_channel_id: voice_channel_id,
+            bot_activity: bot_activity,
             tx: tx.into(),
         })
         .framework(framework)
