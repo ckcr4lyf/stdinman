@@ -8,21 +8,24 @@ If your audio is in any other format, it is possible to use tools like ffmpeg to
 ffmpeg -re -i sample.mp3 -map 0:a:0 -c:a:0 pcm_f32le -ar 48000 -ac 2 -f f32le - | stdinman
 ```
 
+https://github.com/ckcr4lyf/stdinman/assets/6680615/cee1ef86-2627-4240-8a9a-45d2bbd38276
+
+
 ## Motivation
 
-There are several interesting discord bots and such floating around, such as for playing Youtube links, soundcloud etc. However, as an **Arch Linux** user, I wanted something super composable - the ability to play _any raw audio_ into Discord, via a bot.
+There are several interesting discord bots and such floating around, such as for playing Youtube links, soundcloud etc. There are also ways to make your Mic input some kind of loopback device to play audio via your own user. However, as an **Arch Linux** user, I wanted something super composable - the ability to play _any raw audio_ into Discord, via a bot.
 
-That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything that can be passed into ffmpeg), or spinning vinyl*. Check out the [recipes](#recipes) section for more.
+That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything that can be passed into ffmpeg), or spinning vinyl. Check out the [recipes](#recipes) section for more.
 
-## Building
+## Installation
 
-Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rustup.rs/), then run:
+Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rustup.rs/). Then, you can install the binary via cargo:
 
 ```
-cargo build --release
+cargo install --git https://github.com/ckcr4lyf/stdinman.git
 ```
 
-The binary would be in `./target/release/stdinman` . Copy it somewhere in your PATH or run it from here directly.
+I've mostly only tested it on Linux, but it should work on Mac as well, and probably on Windows via WSL.
 
 ## Usage
 
@@ -30,6 +33,8 @@ stdinman works via a Discord Bot, connected to a Voice Channel. You must ensure 
 
 * added to the server where you want to stream audio
 * has the "Connect" & "Speak" voice permissions
+
+There is [a guide at the bottom](#setting-up-the-discord-bot) on setting up a Discord Bot if you're unfamiliar.
 
 You'll need to provide the bot's token, and the ID of the voice channel you want it to connect to. These can be passed via CLI args:
 
@@ -131,3 +136,29 @@ parec -d stdinman-demo.monitor --format=float32le --rate=48000 | stdinman
 Many thanks to Enitoni for [pulseshitter](https://github.com/Enitoni/pulseshitter), which was my inspiration for this project.
 
 Also thanks to the amazing developers of [serenity](https://github.com/serenity-rs/serenity/) & [songbird](https://github.com/serenity-rs/songbird/) , for making working with Discord bots and streaming audio in Rust so easy.
+
+## Setting up the Discord Bot
+
+### Creating the Bot
+
+Log into your Discord account in your browser, and then go to their developer portal: https://discord.com/developers/applications . 
+
+Next create a "new application", and give it any name you want.
+
+In the "App Management" page, click on "Bot", then click "Reset Token"
+
+![image](https://github.com/ckcr4lyf/stdinman/assets/6680615/555dd43b-b23d-4ca5-ac14-67d33e5640ed)
+
+Copy this token somewhere, this is needed for `stdinman` to authenticate as the bot.
+
+### Inviting the bot to a server
+
+From the same developer portal, we will generate an invite link. Click "OAuth2", then "URL Generator". In the "Scopes" section, select "bot", and then in "Bot Permissions", select "Connect" and "Speak", and then copy the URL. You can now use this URL to invite the bot to your server.
+
+![image](https://github.com/ckcr4lyf/stdinman/assets/6680615/674324c1-23ab-48b7-9395-2b5c61cf3539)
+
+### Getting the voice channel ID
+
+In your server, go to the hover over the voice channel an click on "Open Chat". The Channel ID is the second number in the URL.
+
+Alternatively, enable "Developer Mode" under Advanced settings in your Discord account, then you can just right-click the voice channel and copy the ID.
