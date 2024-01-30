@@ -17,15 +17,14 @@ There are several interesting discord bots and such floating around, such as for
 
 That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything that can be passed into ffmpeg), or spinning vinyl. Check out the [recipes](#recipes) section for more.
 
-## Building
+## Installation
 
-Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rustup.rs/), then run:
+Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rustup.rs/). Then, you can install the binary via cargo:
 
 ```
-cargo build --release
+cargo install --git https://github.com/ckcr4lyf/stdinman.git
 ```
 
-The binary would be in `./target/release/stdinman` . Copy it somewhere in your PATH or run it from here directly.
 
 ## Usage
 
