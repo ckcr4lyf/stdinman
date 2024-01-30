@@ -143,7 +143,7 @@ Next create a "new application", and give it any name you want.
 
 In the "App Management" page, click on "Bot", then click "Reset Token"
 
-TODO: IMAGE
+![image](https://github.com/ckcr4lyf/stdinman/assets/6680615/555dd43b-b23d-4ca5-ac14-67d33e5640ed)
 
 Copy this token somewhere, this is needed for `stdinman` to authenticate as the bot.
 
@@ -151,7 +151,7 @@ Copy this token somewhere, this is needed for `stdinman` to authenticate as the 
 
 From the same developer portal, we will generate an invite link. Click "OAuth2", then "URL Generator". In the "Scopes" section, select "bot", and then in "Bot Permissions", select "Connect" and "Speak", and then copy the URL. You can now use this URL to invite the bot to your server.
 
-TODO: IMAGE
+![image](https://github.com/ckcr4lyf/stdinman/assets/6680615/674324c1-23ab-48b7-9395-2b5c61cf3539)
 
 ### Getting the voice channel ID
 
