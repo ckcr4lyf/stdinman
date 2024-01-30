@@ -25,7 +25,6 @@ Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rust
 cargo install --git https://github.com/ckcr4lyf/stdinman.git
 ```
 
-
 ## Usage
 
 stdinman works via a Discord Bot, connected to a Voice Channel. You must ensure this bot is:
@@ -133,3 +132,29 @@ parec -d stdinman-demo.monitor --format=float32le --rate=48000 | stdinman
 Many thanks to Enitoni for [pulseshitter](https://github.com/Enitoni/pulseshitter), which was my inspiration for this project.
 
 Also thanks to the amazing developers of [serenity](https://github.com/serenity-rs/serenity/) & [songbird](https://github.com/serenity-rs/songbird/) , for making working with Discord bots and streaming audio in Rust so easy.
+
+## Setting up the Discord Bot
+
+### Creating the Bot
+
+Log into your Discord account in your browser, and then go to their developer portal: https://discord.com/developers/applications . 
+
+Next create a "new application", and give it any name you want.
+
+In the "App Management" page, click on "Bot", then click "Reset Token"
+
+TODO: IMAGE
+
+Copy this token somewhere, this is needed for `stdinman` to authenticate as the bot.
+
+### Inviting the bot to a server
+
+From the same developer portal, we will generate an invite link. Click "OAuth2", then "URL Generator". In the "Scopes" section, select "bot", and then in "Bot Permissions", select "Connect" and "Speak", and then copy the URL. You can now use this URL to invite the bot to your server.
+
+TODO: IMAGE
+
+### Getting the voice channel ID
+
+In your server, go to the hover over the voice channel an click on "Open Chat". The Channel ID is the second number in the URL.
+
+Alternatively, enable "Developer Mode" under Advanced settings in your Discord account, then you can just right-click the voice channel and copy the ID.
