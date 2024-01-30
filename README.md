@@ -13,7 +13,7 @@ https://github.com/ckcr4lyf/stdinman/assets/6680615/cee1ef86-2627-4240-8a9a-45d2
 
 ## Motivation
 
-There are several interesting discord bots and such floating around, such as for playing Youtube links, soundcloud etc. However, as an **Arch Linux** user, I wanted something super composable - the ability to play _any raw audio_ into Discord, via a bot.
+There are several interesting discord bots and such floating around, such as for playing Youtube links, soundcloud etc. There are also ways to make your Mic input some kind of loopback device to play audio via your own user. However, as an **Arch Linux** user, I wanted something super composable - the ability to play _any raw audio_ into Discord, via a bot.
 
 That's exactly what this program does. It is entirely up to the user how they wish to prepare the audio source - for instance their microphone, their speaker output (i.e. alsa monitor), an internet audio stream (or anything that can be passed into ffmpeg), or spinning vinyl. Check out the [recipes](#recipes) section for more.
 
@@ -25,12 +25,16 @@ Ensure you have the rust toolchain installed, for e.g. via [rustup](https://rust
 cargo install --git https://github.com/ckcr4lyf/stdinman.git
 ```
 
+I've mostly only tested it on Linux, but it should work on Mac as well, and probably on Windows via WSL.
+
 ## Usage
 
 stdinman works via a Discord Bot, connected to a Voice Channel. You must ensure this bot is:
 
 * added to the server where you want to stream audio
 * has the "Connect" & "Speak" voice permissions
+
+There is [a guide at the bottom](#setting-up-the-discord-bot) on setting up a Discord Bot if you're unfamiliar.
 
 You'll need to provide the bot's token, and the ID of the voice channel you want it to connect to. These can be passed via CLI args:
 
