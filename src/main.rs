@@ -1,4 +1,4 @@
-use std::{default, thread};
+use std::thread;
 
 use log::{error, debug};
 use songbird::SerenityInit;
