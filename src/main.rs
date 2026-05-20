@@ -5,7 +5,6 @@ use songbird::SerenityInit;
 use clap::Parser;
 
 use serenity::prelude::*;
-use serenity::framework::standard::StandardFramework;
 use serde::{Serialize, Deserialize};
 use std::sync::mpsc;
 
@@ -91,7 +90,6 @@ async fn main() {
     debug!("starting early-stdin consumer thread");
     thread::spawn(|| stdin::early_stdin_consumer(rx));
 
-    let framework = StandardFramework::new();
     let intents = GatewayIntents::non_privileged();
     let mut client = Client::builder(bot_token, intents)
         .register_songbird()
@@ -100,7 +98,6 @@ async fn main() {
             bot_activity: bot_activity,
             tx: tx.into(),
         })
-        .framework(framework)
         .await
         .expect("Error creating client");
 

@@ -1,6 +1,6 @@
 use std::io::{Read, Seek};
 use log::debug;
-use songbird::input::reader::MediaSource;
+use songbird::input::core::io::MediaSource;
 
 /// A custom songbird::input::Reader which reades from stdin. 
 /// The reader needs to songbird::input::reader::MediaSource

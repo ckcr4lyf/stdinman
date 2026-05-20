@@ -1,9 +1,9 @@
 use std::sync::Mutex;
 
 use log::{error, debug, info};
-use songbird::input::{Input, Reader};
+use songbird::input::RawAdapter;
 
-use serenity::{async_trait, model::prelude::Activity};
+use serenity::{async_trait, gateway::ActivityData};
 use serenity::prelude::*;
 use std::sync::mpsc;
 
@@ -19,8 +19,8 @@ pub struct Handler {
 impl EventHandler for Handler {
     async fn ready(&self, context: Context, _ready: serenity::model::gateway::Ready) {
         info!("discord bot is ready");
-        context.online().await;
-        context.set_activity(Activity::playing(self.bot_activity.clone())).await;
+        context.online();
+        context.set_activity(Some(ActivityData::playing(self.bot_activity.clone())));
 
         let cache_clone = context.cache.clone();
         let context_clone = context.clone();
@@ -40,12 +40,13 @@ impl EventHandler for Handler {
             info!("found the channel (in {}), attempting to connect...", guild.name(&cache_clone).unwrap_or("(failed to get server name)".to_string()));
 
             let manager = songbird::get(&context_clone).await.expect("failed to get songbird manager");
-            let (handler, result) = manager.join(channel.guild_id, channel.id).await;
-
-            if let Err(e) = result {
-                error!("Failed to join channel: {}", e);
-                return;
-            }
+            let handler = match manager.join(channel.guild_id, channel.id).await {
+                Ok(handler) => handler,
+                Err(e) => {
+                    error!("Failed to join channel: {}", e);
+                    return;
+                }
+            };
 
             info!("joined channel sucessfully!");
             debug!("Telling early-stdin consumer to stop...");
@@ -57,7 +58,8 @@ impl EventHandler for Handler {
             // Now we have access to stdin
             info!("going to pipe stdin to the bot");
             let stdin_reader = stdin::StdinReader;
-            handler.lock().await.play_only_source(Input::float_pcm(true, Reader::Extension(Box::new(stdin_reader))));
+            let input = RawAdapter::new(stdin_reader, 48_000, 2).into();
+            handler.lock().await.play_only_input(input);
             info!("piping successfully...");
         }
     }
