@@ -31,7 +31,11 @@ struct StdinmanArgs {
 }
 
 #[tokio::main]
-async fn main() { 
+async fn main() {
+    rustls::crypto::ring::default_provider()
+        .install_default()
+        .expect("failed to install rustls crypto provider");
+
     env_logger::init();
 
     let cfg_path = confy::get_configuration_file_path("stdinman", "stdinman").expect("fail to get config file path");
